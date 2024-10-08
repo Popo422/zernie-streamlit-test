@@ -7,13 +7,13 @@ from sqlalchemy import create_engine
 
 
 # create a connection to a database
-username = st.secrets["database"]["username"]
-password = st.secrets["database"]["password"]
-host = st.secrets["database"]["host"]
-port = st.secrets["database"]["port"]
-database = st.secrets["database"]["database"]
-booking_table = st.secrets["database"]["booking_table"]
-users_table = st.secrets["database"]["users_table"]
+username = st.secrets["username"]
+password = st.secrets["password"]
+host = st.secrets["host"]
+port = st.secrets["port"]
+database = st.secrets["database"]
+booking_table = st.secrets["booking_table"]
+users_table = st.secrets["users_table"]
 print(username)
 try:
     # Create the connection URL
@@ -26,8 +26,8 @@ except Exception as e:
     print(f"Error: {e}")
 
 
-bookingTable = st.secrets["database"]["booking_table"]
-usersTable = st.secrets["database"]["users_table"]
+bookingTable = st.secrets["booking_table"]
+usersTable = st.secrets["users_table"]
 
 BookingAndUsersDf = pd.read_sql(
     f"""SELECT 
