@@ -122,6 +122,10 @@ with view1:
         on_select="ignore",
         selection_mode="multi-row",
     )
+    st.divider()
+_,revenueTitle = st.columns([0.1, 0.9])
+with revenueTitle:
+    st.subheader("Revenue by Email")
 _, col4 = st.columns([0.1, 0.9])
 with col4:
     fig = px.bar(
