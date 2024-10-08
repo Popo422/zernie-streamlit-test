@@ -3,3 +3,4 @@ pandas==2.2.2
 Pillow==10.4.0
 plotly==5.24.1
 SQLAlchemy==2.0.32
+pymysql
