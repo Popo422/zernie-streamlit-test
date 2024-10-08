@@ -1,21 +1,20 @@
 import streamlit as st
 import pandas as pd
-import datetime as dt
 from PIL import Image
 import plotly.express as px
 import plotly.graph_objects as go
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+
 # create a connection to a database
-load_dotenv()
-engine = None
-username = os.getenv("username")
-password = os.getenv("password")
-host = os.getenv("host")
-port = os.getenv("port")
-database = os.getenv("database")
+username = st.secrets["database"]["username"]
+password = st.secrets["database"]["password"]
+host = st.secrets["database"]["host"]
+port = st.secrets["database"]["port"]
+database = st.secrets["database"]["database"]
+booking_table = st.secrets["database"]["booking_table"]
+users_table = st.secrets["database"]["users_table"]
+print(username)
 try:
     # Create the connection URL
     connection_url = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
@@ -27,8 +26,8 @@ except Exception as e:
     print(f"Error: {e}")
 
 
-bookingTable = os.getenv("booking_table")
-usersTable = os.getenv("users_table")
+bookingTable = st.secrets["database"]["booking_table"]
+usersTable = st.secrets["database"]["users_table"]
 
 BookingAndUsersDf = pd.read_sql(
     f"""SELECT 
