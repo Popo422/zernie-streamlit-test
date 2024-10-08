@@ -29,9 +29,10 @@ usersTable = st.secrets["users_table"]
 BookingAndUsersDf = pd.read_sql(
     f"""SELECT 
     a.status AS booking_status,  
-    b.email,
     a.persons,
     a.created,
+    a.price,
+    b.email,
     b.firstName,
     b.lastName,
     a.customerId,
@@ -121,3 +122,16 @@ with view1:
         on_select="ignore",
         selection_mode="multi-row",
     )
+_, col4 = st.columns([0.1, 0.9])
+with col4:
+    fig = px.bar(
+        BookingAndUsersDf[["email", "price"]].groupby(by="email")["price"].sum().reset_index(),
+        x="email",
+        y="price",
+        labels={"Total Sales": "Total Sales {$}"},
+        hover_data=["price"],
+        template="gridon",
+        height=500,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
