@@ -15,15 +15,12 @@ database = st.secrets["database"]
 booking_table = st.secrets["booking_table"]
 users_table = st.secrets["users_table"]
 print(username)
-try:
-    # Create the connection URL
-    connection_url = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
-    # Create an engine instance
-    engine = create_engine(connection_url)
-    # Query the table and load into a DataFrame
 
-except Exception as e:
-    print(f"Error: {e}")
+    # Create the connection URL
+connection_url = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
+    # Create an engine instance
+engine = create_engine(connection_url)
+
 
 
 bookingTable = st.secrets["booking_table"]
