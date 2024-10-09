@@ -123,10 +123,12 @@ with view1:
         selection_mode="multi-row",
     )
     st.divider()
-_,revenueTitle = st.columns([0.1, 0.9])
+_,revenueTitle,userBookingTitle = st.columns([0.1, 0.45,0.45])
 with revenueTitle:
     st.subheader("Revenue by Email")
-_, col4 = st.columns([0.1, 0.9])
+with userBookingTitle:
+    st.subheader("Number of Bookings by Email")
+_, col4,col5 = st.columns([0.1, 0.45,0.45])
 with col4:
     fig = px.bar(
         BookingAndUsersDf[["email", "price"]].groupby(by="email")["price"].sum().reset_index(),
@@ -138,4 +140,12 @@ with col4:
         height=500,
     )
     st.plotly_chart(fig, use_container_width=True)
-
+with col5:
+    pie_chart = px.pie(
+        BookingAndUsersDf.groupby("email")["persons"].count().reset_index(),
+        names="email",
+        values="persons",
+        template="gridon",
+        height=500,
+    )
+    st.plotly_chart(pie_chart, use_container_width=True)
