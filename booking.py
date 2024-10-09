@@ -5,8 +5,31 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sqlalchemy import create_engine
 
+# Load CSS
+st.set_page_config(layout="wide")
 
-# create a connection to a database
+with open("styles.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f4f4f9; /* Light grey background */
+        font-family: 'Arial', sans-serif; /* Font style */
+        color: #333; /* Text color */
+    }
+    div.block-container {
+        padding-top: 1rem;
+        padding-left: 2rem; /* Adjust left padding */
+        padding-right: 2rem; /* Adjust right padding */
+    }
+    /* Add more styles for specific elements if needed */
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+# Create a connection to a database
 username = st.secrets["username"]
 password = st.secrets["password"]
 host = st.secrets["host"]
@@ -14,14 +37,11 @@ port = st.secrets["port"]
 database = st.secrets["database"]
 booking_table = st.secrets["booking_table"]
 users_table = st.secrets["users_table"]
-print(username)
 
-    # Create the connection URL
+# Create the connection URL
 connection_url = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
-    # Create an engine instance
+# Create an engine instance
 engine = create_engine(connection_url)
-
-
 
 bookingTable = st.secrets["booking_table"]
 usersTable = st.secrets["users_table"]
@@ -43,41 +63,23 @@ INNER JOIN
     {usersTable} b ON b.id = a.customerId; """,
     con=engine,
 )
-st.set_page_config(layout="wide")
+
+
 BookingDf = pd.read_sql(f"""SELECT * FROM {bookingTable}""", con=engine)
 image = Image.open("axs.png")
+
 dividerElement = """
-        <style>
-    .divider {
-    border-left-style: solid;
-    border-left-color: gray;
-    padding-left: 25px;
-    }
-    </style>
-  <center>
     <span class="divider"></span>
- <center>
-    """
-col1, col2 = st.columns([0.1, 0.9])
-with col1:
-    st.image(image, width=100)
-    html_title = """
-    <style>
-    .title {
-    font-size: 25px;
-    font-weight: bold;
-    text-align: center;
-    # padding-top: 30px;
-    border-radius: 6px;
-    }
-    </style>
-  <center>
-    <h1 class="title">Booking Analytics</h1>
- <center>
-    """
+"""
+col1, col2,col3 = st.columns([0.1,0.1, 0.8])
 with col2:
+    st.image(image, width=100)
+with col3:
+    html_title = "<h3 class='title'>Booking Analytics</h3>"
     st.markdown(html_title, unsafe_allow_html=True)
+
 choice = st.sidebar.selectbox("Dashboard", ("View bookings"))
+
 (
     _,
     appproved_appointments,
@@ -86,52 +88,74 @@ choice = st.sidebar.selectbox("Dashboard", ("View bookings"))
     divider2,
     cancelled_appointments,
     divider3,
-    revenue
+    revenue,
 ) = st.columns([0.1, 0.2, 0.02, 0.2, 0.02, 0.2, 0.02, 0.2])
+today = pd.Timestamp.now().normalize()
+current_period = BookingDf[BookingDf["created"] >= pd.Timestamp.now().normalize()]  # Today
+previous_period = BookingDf[BookingDf["created"] < pd.Timestamp.now().normalize()]
+
+# Before today
+total_approved = BookingDf[BookingDf["status"] == "approved"].shape[0]
+previous_approved = BookingDf[
+    (BookingDf["status"] == "approved") & (BookingDf["created"] < today)
+].shape[0]
+# Delta is the difference between the total and the previous period
+delta_approved = total_approved - previous_approved
+
+total_pending = BookingDf[BookingDf["status"] == "pending"].shape[0]
+previous_pending = BookingDf[
+    (BookingDf["status"] == "pending") & (BookingDf["created"] < today)
+].shape[0]
+delta_pending = total_pending - previous_pending
+
+
+total_cancelled = BookingDf[BookingDf["status"] == "cancelled"].shape[0]
+previous_cancelled = BookingDf[
+    (BookingDf["status"] == "cancelled") & (BookingDf["created"] < today)
+].shape[0]
+delta_cancelled = total_cancelled - previous_cancelled
+
 with appproved_appointments:
-    st.write("Approved Appointments")
-    st.write(BookingDf[BookingDf["status"] == "approved"].shape[0])
-with divider1:
-    st.markdown(dividerElement, unsafe_allow_html=True)
+   st.metric("Approved Appointments",total_approved, delta=delta_approved)
+# with divider1:
+    # st.markdown(dividerElement, unsafe_allow_html=True,)
 with pending_appointments:
-    with st.container():
-        st.write("Pending Appointments")
-        st.write(BookingDf[BookingDf["status"] == "pending"].shape[0])
-with divider2:
-    st.markdown(dividerElement, unsafe_allow_html=True)
+     st.metric("Pending Appointments", total_pending, delta=delta_pending)
+# with divider2:
+#     st.markdown(dividerElement, unsafe_allow_html=True)
 with cancelled_appointments:
-    st.write("Cancelled Appointments")
-    st.write(BookingDf[BookingDf["status"] == "cancelled"].shape[0])
-with divider3:
-    st.markdown(dividerElement, unsafe_allow_html=True)
+    st.metric("Cancelled Appointments", total_cancelled, delta=delta_cancelled)
+# with divider3:
+#     st.markdown(dividerElement, unsafe_allow_html=True)
 with revenue:
-    st.write("Revenue")
-    st.write(BookingDf["price"].sum())
+    st.metric("Total Appointments", BookingDf.shape[0],current_period.shape[0])
+
 _, view1 = st.columns([0.1, 0.9])
 with view1:
-
     table = st.dataframe(
-        data=BookingAndUsersDf[["booking_status","created", "email" , "persons",  "firstName","lastName" ]],
-        width=None,
-        height=None,
+        data=BookingAndUsersDf[
+            ["booking_status", "created", "email", "persons", "firstName", "lastName"]
+        ],
         use_container_width=True,
-        hide_index=None,
-        column_order=None,
-        column_config=None,
-        key=None,
-        on_select="ignore",
-        selection_mode="multi-row",
     )
     st.divider()
-_,revenueTitle,userBookingTitle = st.columns([0.1, 0.45,0.45])
+
+_, revenueTitle, userBookingTitle = st.columns([0.1, 0.45, 0.45])
 with revenueTitle:
-    st.subheader("Revenue by Email")
+    st.markdown("<h3 class='stSubheader'>Revenue by Email</h3>", unsafe_allow_html=True)
 with userBookingTitle:
-    st.subheader("Number of Bookings by Email")
-_, col4,col5 = st.columns([0.1, 0.45,0.45])
+    st.markdown(
+        "<h3 class='stSubheader'>Number of Bookings by Email</h3>",
+        unsafe_allow_html=True,
+    )
+
+_, col4, col5 = st.columns([0.1, 0.45, 0.45])
 with col4:
     fig = px.bar(
-        BookingAndUsersDf[["email", "price"]].groupby(by="email")["price"].sum().reset_index(),
+        BookingAndUsersDf[["email", "price"]]
+        .groupby(by="email")["price"]
+        .sum()
+        .reset_index(),
         x="email",
         y="price",
         labels={"Total Sales": "Total Sales {$}"},
