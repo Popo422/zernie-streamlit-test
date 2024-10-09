@@ -1,0 +1,7 @@
+[theme]
+primaryColor = "#1DB954"  # Customize primary color as needed
+backgroundColor = "#0e1117"  # Dark background color
+secondaryBackgroundColor = "#262730"
+textColor = "#FFFFFF"
+font = "sans serif"
+base = "dark"
